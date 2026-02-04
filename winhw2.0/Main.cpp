@@ -5,7 +5,7 @@ int main() {
     string map_id = "0";
     G.generateList(map_id);
     G.printGraph();
-    int begin_id = 9;//设置起点
+    int begin_id = 4;//设置起点
     vector<pair<int, double>> resault = G.findMultipleExits(begin_id);
     for (int i = 0; i < resault.size(); i++)
     {
@@ -21,6 +21,7 @@ int main() {
                 cout << "->";
             }
         }
+        cout << endl;
         resault.pop_back();
     }
     return 0;

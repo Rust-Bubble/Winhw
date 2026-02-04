@@ -177,24 +177,27 @@ void Graph::removeEdge(int from, int to) {
 //读取地图，创建邻接表
 void Graph::generateList(string mapID)
 {
-    string dirpath = "Maps/map" + mapID + "/";
+    string filepath = "Maps/map" + mapID + ".csv";
     //读取点数据
         //读取文件，分离出各个属性
-    string srcpath = dirpath + "srcmap.csv";
-    ifstream file(srcpath);
+    ifstream file(filepath);
     if (!file)
     {
         cerr << "打开点文件失败，请检查点地图文件位置" << endl;
         return;
     }
-    string line;
-    bool ishead = true;
-    while (getline(file, line)) {
-        if (ishead)
-        {
-            ishead = false;
-            continue;
-        }
+    int size;
+    string line,rsize,head;
+    
+    //读取点数
+    getline(file, rsize);
+    size = stoi(rsize);
+    //读取表头
+    getline(file, head);
+    //读取点数据
+    for (int i = 0; i < size; i++)
+    {
+        getline(file, line);
         string name, rtype, rid, rx, ry, rib;
         int id, x, y;
         bool isburning;
@@ -216,68 +219,41 @@ void Graph::generateList(string mapID)
         getline(ss, rib, '\n');
         if (rib == "0")isburning = false;
         else isburning = true;
-        //cout << id << " " << name << " " << pos << " " << rtype << ' ' << isburning << endl; 
         Vertex target = Vertex(id, name, type, pos, isburning);//使用属性创点
         addVertex(target); //把点加入图
     }
-    int size = vertices.back().id;
-    //读取各边距离
-    string Disfpath = dirpath + "DisArr.txt";
-    ifstream Disfile(Disfpath, ios::in);
-    if (!Disfile)
+    
+   
+    //读取边数据
+    int edgenum;
+    //读取点数
+    getline(file, rsize);
+    edgenum = stoi(rsize);
+    //读取表头
+    getline(file, head);
+    for (int i = 0; i < edgenum; i++)
     {
-        cerr << "读取边距离出错，请检查文件位置！" << endl;
-        return;
-    }
-    //读取各边拥堵程度
-    string Jamfpath = dirpath + "JamArr.txt";
-    ifstream Jamfile(Jamfpath, ios::in);
-    if (!Jamfile)
-    {
-        cerr << "读取拥堵程度出错，请检查文件位置！" << endl;
-        return;
-    }
-    //读取安全等级
-    string Savefpath = dirpath + "SaveArr.txt";
-    ifstream Savefile(Savefpath, ios::in);
-    if (!Savefile)
-    {
-        cerr << "读取安全等级出错，请检查文件位置！" << endl;
-        return;
-    }
-    //读取边类型
-    string Typefpath = dirpath + "TypeArr.txt";
-    ifstream Typefile(Typefpath, ios::in);
-    if (!Typefile)
-    {
-        cerr << "读取边类型出错，请检查文件位置！" << endl;
-        return;
-    }
-    //根据四个数据整合成邻接表
-    for (int i = 0; i < size; i++)
-    {
-        string dline,sline,jline,tline;
-        getline(Disfile, dline);
-        getline(Savefile, sline);
-        getline(Jamfile, jline);
-        getline(Typefile, tline);
-        stringstream distance(dline),save(sline),jam(jline),type(tline);
-        for (int j = 0; j < size; j++)
-        {
-            string d, s, a, t;
-            getline(distance, d, ' ');
-            getline(save, s, ' ');
-            getline(jam, a, ' ');
-            getline(type, t, ' ');
-            double disnum = stod(d), jamnum = stod(a);
-            int savenum = stoi(s);
-            EdgeType tp;
-            if (t == "road") tp = EdgeType::ROAD;
-            else if (t == "stair") tp = EdgeType::STAIR;
-            else tp = EdgeType::CORRIDOR;
-            if (disnum == -1 || i > j)  continue;//忽略无效边
-            addEdge(Edge(i + 1, j + 1, disnum, tp, savenum, jamnum));
-        }
+        getline(file, line);
+        string edgetype, rbeg, rend, rcongestion,rrisklevel,rdistance;
+        int beg_id, end_id,risklevel;
+        double congestion, distance;
+        stringstream ss(line);
+        getline(ss, rbeg, ',');
+        getline(ss, rend, ',');
+        beg_id = stoi(rbeg);
+        end_id = stoi(rend);
+        getline(ss, edgetype, ',');
+        EdgeType tp;
+        if (edgetype == "road") tp = EdgeType::ROAD;
+        else if (edgetype == "stair") tp = EdgeType::STAIR;
+        else tp = EdgeType::CORRIDOR;
+        getline(ss, rcongestion,',');
+        congestion = stod(rcongestion);
+        getline(ss, rdistance, ',');
+        distance = stod(rdistance);
+        getline(ss, rrisklevel, '\n');
+        risklevel = stoi(rrisklevel);
+        addEdge(Edge(beg_id, end_id, distance, tp, risklevel, congestion));
     }
    
 }
