@@ -88,7 +88,8 @@ void Graph::addEdge(const Edge& edge) {
 
     if (!edgeExists) {
         std::cout << "添加边: " << getVertex(edge.from)->name << " <-> " << getVertex(edge.to)->name
-            << " (距离: " << edge.distance << "m)" << std::endl;
+            << " (距离: " << edge.distance*100 << "m)"
+            <<"中转点坐标：(" <<edge.intermediate_point.first<<","<<edge.intermediate_point.second<<")" << std::endl;
     }
 }
 // 删除节点
@@ -205,22 +206,27 @@ bool Graph::generateList(const char* path){
     {
         getline(file, line);
         string name, rtype, rid, rx, ry, rib;
-        int id, x, y;
+        int id;
+        double x, y;
         bool isburning;
         VertexType type;
         stringstream ss(line);
+        //读取id
         getline(ss, rid, ',');
         id = stoi(rid.c_str());
+        //读取名称
         getline(ss, name, ',');
+        //读取类型
         getline(ss, rtype, ',');
         if(rtype == "TEACHING_BUILDING") type = VertexType::TEACHING_BUILDING;
         else if(rtype == "DORMITORY") type = VertexType::DORMITORY;
         else if(rtype == "EXIT")type = VertexType::EXIT;
         else type = VertexType::FLOOR_NODE;
-        getline(ss, rx, ' ');
+        //读取坐标
+        getline(ss, rx, ',');
         getline(ss, ry, ',');
-        x = stoi(rx);
-        y = stoi(ry);
+        x = stod(rx);
+        y = stod(ry);
         Vec2Int pos(x, y);
         getline(ss, rib, '\n');
         if(rib == "0")isburning = false;
@@ -239,26 +245,37 @@ bool Graph::generateList(const char* path){
     for(int i = 0; i < edgenum; i++)
     {
         getline(file, line);
-        string edgetype, rbeg, rend, rcongestion, rrisklevel, rdistance;
+        string edgetype, rbeg, rend, rcongestion, rrisklevel, rdistance,rx,ry;
         int beg_id, end_id, risklevel;
-        double congestion, distance;
+        double congestion, distance, intermediate_point_x, intermediate_point_y;
         stringstream ss(line);
+        //读取起点
         getline(ss, rbeg, ',');
-        getline(ss, rend, ',');
         beg_id = stoi(rbeg);
+        //读取终点
+        getline(ss, rend, ',');
         end_id = stoi(rend);
+        //读取边类型
         getline(ss, edgetype, ',');
         EdgeType tp;
         if(edgetype == "road") tp = EdgeType::ROAD;
         else if(edgetype == "stair") tp = EdgeType::STAIR;
         else tp = EdgeType::CORRIDOR;
+        //读取拥挤度
         getline(ss, rcongestion, ',');
         congestion = stod(rcongestion);
+        //读取距离
         getline(ss, rdistance, ',');
         distance = stod(rdistance);
-        getline(ss, rrisklevel, '\n');
+        //读取风险等级
+        getline(ss, rrisklevel, ',');
         risklevel = stoi(rrisklevel);
-        addEdge(Edge(beg_id, end_id, distance, tp, risklevel, congestion));
+        //读取中转点坐标
+        getline(ss, rx, ',');
+        getline(ss, ry, ',');
+        intermediate_point_x = stod(rx);
+        intermediate_point_y = stod(ry);
+        addEdge(Edge(beg_id, end_id, distance, tp, risklevel, congestion,intermediate_point_x,intermediate_point_y));
     }
     std::cout << "[Graph::generateList]地图生成成功" << endl;
     return true;
