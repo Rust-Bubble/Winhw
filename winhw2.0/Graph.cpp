@@ -1,18 +1,25 @@
 #include "Graph.h"
-
+#include <algorithm>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <limits>
+#include <queue>
+#include <unordered_map>
 // 1. 基本操作实现
 
 // 添加节点
 void Graph::addVertex(const Vertex& vertex) {
     // 检查是否已存在
     if (findVertexIndex(vertex.id) != -1) {
-        cerr << "顶点ID " << vertex.id << " 已存在！" << endl;
+        std::cout << "顶点ID " << vertex.id << " 已存在！" << std::endl;
         return;
     }
     vertices.push_back(vertex);
     idToIndexMap[vertex.id] = vertices.size() - 1;   // 添加映射：新顶点的索引是 size()-1
-    adjacencyList[vertex.id] = vector<Edge>();       // 在邻接表中初始化这个点，下标是该点的ID
-    cout << "添加顶点: " << vertex.name << " (" << vertex.id << ")" << endl;
+    adjacencyList[vertex.id] = std::vector<Edge>();       // 在邻接表中初始化这个点，下标是该点的ID
+    std::cout << "添加顶点: " << vertex.name << " (" << vertex.id << ")" << std::endl;
 
     return;
 }
@@ -20,13 +27,13 @@ void Graph::addVertex(const Vertex& vertex) {
 void Graph::addEdge(const Edge& edge) {
     // 检查顶点是否存在
     if (findVertexIndex(edge.from) == -1 || findVertexIndex(edge.to) == -1) {
-        cerr << "边端点不存在！" << endl;
+        std::cout << "边端点不存在！" << std::endl;
         return;
     }
 
     // 检查是否在添加自环边（from == to）
     if (edge.from == edge.to) {
-        cerr << "错误：不允许自环边！" << endl;
+        std::cout << "错误：不允许自环边！" << std::endl;
         return;
     }
 
@@ -47,9 +54,9 @@ void Graph::addEdge(const Edge& edge) {
 
     if (edgeExists) {
         // 边已存在，打印警告并更新
-        cout << "警告：边 " << edge.from << " <-> " << edge.to
+        std::cout << "警告：边 " << edge.from << " <-> " << edge.to
             << " 已存在（距离: " << existingEdge.distance << "m）"
-            << "，更新为 " << edge.distance << "m" << endl;
+            << "，更新为 " << edge.distance << "m" << std::endl;
 
         // 删除旧边（正向）
         for (auto it = adjacencyList[edge.from].begin();
@@ -80,23 +87,23 @@ void Graph::addEdge(const Edge& edge) {
     adjacencyList[edge.to].push_back(reverseEdge);
 
     if (!edgeExists) {
-        cout << "添加边: " << getVertex(edge.from)->name << " <-> " << getVertex(edge.to)->name
-            << " (距离: " << edge.distance << "m)" << endl;
+        std::cout << "添加边: " << getVertex(edge.from)->name << " <-> " << getVertex(edge.to)->name
+            << " (距离: " << edge.distance << "m)" << std::endl;
     }
 }
 // 删除节点
 void Graph::removeVertex(int id) {
     int index = findVertexIndex(id);
     if (index == -1) {
-        cerr << "顶点ID " << id << " 不存在！" << endl;
+        std::cout << "顶点ID " << id << " 不存在！" << std::endl;
         return;
     }
 
-    string vertexName = vertices[index].name;
-    cout << "删除顶点: " << vertexName << " (" << id << ")" << endl;
+    std::string vertexName = vertices[index].name;
+    std::cout << "删除顶点: " << vertexName << " (" << id << ")" << std::endl;
 
     // 1. 先删除所有与该顶点相连的边
-    vector<int> neighbors;
+    std::vector<int> neighbors;
     if (adjacencyList.find(id) != adjacencyList.end()) {
         // 收集所有邻居ID
         for (const Edge& edge : adjacencyList[id]) {
@@ -121,7 +128,7 @@ void Graph::removeVertex(int id) {
         idToIndexMap[vertices[i].id] = static_cast<int>(i);
     }
 
-    cout << "顶点 " << vertexName << " 删除完成" << endl;
+    std::cout << "顶点 " << vertexName << " 删除完成" << std::endl;
     return;
 }
 // 删除边
@@ -131,16 +138,16 @@ void Graph::removeEdge(int from, int to) {
     int index2 = findVertexIndex(to);
     if (index1 == -1 || index2 == -1) {
         if (index1 == -1) {
-            cerr << "顶点ID " << from << " 不存在！" << endl;
+            std::cout << "顶点ID " << from << " 不存在！" << std::endl;
         }
         if (index2 == -1) {
-            cerr << "顶点ID " << to << " 不存在！" << endl;
+            std::cout << "顶点ID " << to << " 不存在！" << std::endl;
         }
         return;
     }
 
     bool removed = false;
-    cout << "删除从" << vertices[index1].name << "到" << vertices[index2].name << "的边" << endl;
+    std::cout << "删除从" << vertices[index1].name << "到" << vertices[index2].name << "的边" << std::endl;
 
     if (adjacencyList.find(from) != adjacencyList.end()) {
         for (size_t i = 0; i < adjacencyList[from].size(); i++) {
@@ -163,39 +170,38 @@ void Graph::removeEdge(int from, int to) {
     }
 
     if (removed) {
-        cout << "已删除从" << vertices[index1].name << "(" << from
-            << ")到" << vertices[index2].name << "(" << to << ")的边" << endl;
+        std::cout << "已删除从" << vertices[index1].name << "(" << from
+            << ")到" << vertices[index2].name << "(" << to << ")的边" << std::endl;
     }
     else {
-        cout << "边不存在：从" << vertices[index1].name << "(" << from
-            << ")到" << vertices[index2].name << "(" << to << ")" << endl;
+        std::cout << "边不存在：从" << vertices[index1].name << "(" << from
+            << ")到" << vertices[index2].name << "(" << to << ")" << std::endl;
     }
 
     return;
 }
 
-//读取地图，创建邻接表
-void Graph::generateList(string mapID)
-{
-    string filepath = "Maps/map" + mapID + ".csv";
+bool Graph::generateList(const char* path){
+    std::cout << "[Graph::generateList]生成地图，自" << path << std::endl;
+    using namespace std;
+    const char*& filepath = path;
     //读取点数据
         //读取文件，分离出各个属性
     ifstream file(filepath);
-    if (!file)
-    {
-        cerr << "打开点文件失败，请检查点地图文件位置" << endl;
-        return;
+    if(!file){
+        cout << "[Graph::generateList]打开点文件失败，请检查点地图文件位置" << endl;
+        return false;
     }
     int size;
-    string line,rsize,head;
-    
+    string line, rsize, head;
+
     //读取点数
     getline(file, rsize);
     size = stoi(rsize);
     //读取表头
     getline(file, head);
     //读取点数据
-    for (int i = 0; i < size; i++)
+    for(int i = 0; i < size; i++)
     {
         getline(file, line);
         string name, rtype, rid, rx, ry, rib;
@@ -207,23 +213,22 @@ void Graph::generateList(string mapID)
         id = stoi(rid.c_str());
         getline(ss, name, ',');
         getline(ss, rtype, ',');
-        if (rtype == "TEACHING_BUILDING") type = VertexType::TEACHING_BUILDING;
-        else if (rtype == "DORMITORY") type = VertexType::DORMITORY;
-        else if (rtype == "EXIT")type = VertexType::EXIT;
+        if(rtype == "TEACHING_BUILDING") type = VertexType::TEACHING_BUILDING;
+        else if(rtype == "DORMITORY") type = VertexType::DORMITORY;
+        else if(rtype == "EXIT")type = VertexType::EXIT;
         else type = VertexType::FLOOR_NODE;
         getline(ss, rx, ' ');
         getline(ss, ry, ',');
-        x = stod(rx);
-        y = stod(ry);
-        Vec2 pos = Vec2(x, y);
+        x = stoi(rx);
+        y = stoi(ry);
+        Vec2Int pos(x, y);
         getline(ss, rib, '\n');
-        if (rib == "0")isburning = false;
+        if(rib == "0")isburning = false;
         else isburning = true;
         Vertex target = Vertex(id, name, type, pos, isburning);//使用属性创点
-        addVertex(target); //把点加入图
+        this->addVertex(target); //把点加入图
     }
-    
-   
+
     //读取边数据
     int edgenum;
     //读取点数
@@ -231,11 +236,11 @@ void Graph::generateList(string mapID)
     edgenum = stoi(rsize);
     //读取表头
     getline(file, head);
-    for (int i = 0; i < edgenum; i++)
+    for(int i = 0; i < edgenum; i++)
     {
         getline(file, line);
-        string edgetype, rbeg, rend, rcongestion,rrisklevel,rdistance;
-        int beg_id, end_id,risklevel;
+        string edgetype, rbeg, rend, rcongestion, rrisklevel, rdistance;
+        int beg_id, end_id, risklevel;
         double congestion, distance;
         stringstream ss(line);
         getline(ss, rbeg, ',');
@@ -244,10 +249,10 @@ void Graph::generateList(string mapID)
         end_id = stoi(rend);
         getline(ss, edgetype, ',');
         EdgeType tp;
-        if (edgetype == "road") tp = EdgeType::ROAD;
-        else if (edgetype == "stair") tp = EdgeType::STAIR;
+        if(edgetype == "road") tp = EdgeType::ROAD;
+        else if(edgetype == "stair") tp = EdgeType::STAIR;
         else tp = EdgeType::CORRIDOR;
-        getline(ss, rcongestion,',');
+        getline(ss, rcongestion, ',');
         congestion = stod(rcongestion);
         getline(ss, rdistance, ',');
         distance = stod(rdistance);
@@ -255,10 +260,9 @@ void Graph::generateList(string mapID)
         risklevel = stoi(rrisklevel);
         addEdge(Edge(beg_id, end_id, distance, tp, risklevel, congestion));
     }
-   
+    std::cout << "[Graph::generateList]地图生成成功" << endl;
+    return true;
 }
-
-
 
 // 2.查询操作实现
 
@@ -280,35 +284,35 @@ int Graph::findVertexIndex(int id) const {
 }
 
 // 根据id获取顶点名称
-string Graph::getVertexName(int id) const {
+std::string Graph::getVertexName(int id) const {
     const Vertex* vertex = getVertex(id);
     return vertex ? vertex->name : "";
 }
 
 // 根据id获取顶点坐标
-Vec2 Graph::getVertexPosition(int id) const {
+Vec2Int Graph::getVertexPosition(int id) const {
     const Vertex* vertex = getVertex(id);
-    return vertex ? vertex->position : Vec2(-1, -1);
+    return vertex ? vertex->position : Vec2Int(-1, -1);
 }
 
 // 根据顶点索引，获取从某个顶点出发的所有边，返回边的列表（vector）
-vector<Edge> Graph::getEdgesFrom(int vertexId) const {
+std::vector<Edge> Graph::getEdgesFrom(int vertexId) const {
     auto it = adjacencyList.find(vertexId);
-    return (it != adjacencyList.end()) ? it->second : vector<Edge>();
+    return (it != adjacencyList.end()) ? it->second : std::vector<Edge>();
 }
 
 // 获取所有顶点的ID列表（vector）
-vector<int> Graph::getAllVertexIds() const {
-    vector<int> ids;
-    for (const auto& vertex : vertices) {
+std::vector<int> Graph::getAllVertexIds() const {
+    std::vector<int> ids;
+    for(const auto& vertex : vertices){
         ids.push_back(vertex.id);
     }
     return ids;
 }
 
 // 根据顶点类型，获取对应的顶点ID列表
-vector<int> Graph::getVerticesByType(VertexType type) const {
-    vector<int> result;
+std::vector<int> Graph::getVerticesByType(VertexType type) const {
+    std::vector<int> result;
     for (const auto& vertex : vertices) {
         if (vertex.type == type) {
             result.push_back(vertex.id);
@@ -341,7 +345,7 @@ int Graph::countVerticesByType(VertexType type) const {
 }
 
 // 获取顶点类型的字符串表示
-string Graph::getVertexTypeString(VertexType type) {
+std::string Graph::getVertexTypeString(VertexType type) {
     switch (type) {
     case VertexType::TEACHING_BUILDING: return "教学楼";
     case VertexType::DORMITORY: return "宿舍";
@@ -352,7 +356,7 @@ string Graph::getVertexTypeString(VertexType type) {
 }
 
 // 计算路径权重
-double Graph::calculatePathWeight(const vector<int>& path, bool emergencyMode) const {
+double Graph::calculatePathWeight(const std::vector<int>& path, bool emergencyMode) const {
     if (path.size() < 2) return 0.0;
 
     double totalWeight = 0.0;
@@ -373,8 +377,8 @@ double Graph::calculatePathWeight(const vector<int>& path, bool emergencyMode) c
         }
 
         if (!edgeFound) {
-            cerr << "警告：路径中顶点 " << from << " 到 " << to << " 的边不存在！" << endl;
-            return numeric_limits<double>::max();  // 返回极大值表示路径无效
+            std::cout << "警告：路径中顶点 " << from << " 到 " << to << " 的边不存在！" << std::endl;
+            return std::numeric_limits<double>::max();  // 返回极大值表示路径无效
         }
     }
 
@@ -383,93 +387,89 @@ double Graph::calculatePathWeight(const vector<int>& path, bool emergencyMode) c
 
 // 打印图的基本信息
 void Graph::printGraph() const {
-    cout << "========== 图结构信息 ==========" << endl;
-    cout << "顶点数量: " << getVertexCount() << endl;
-    cout << "边数量: " << getEdgeCount() << endl;
+    std::cout << "========== 图结构信息 ==========" << std::endl;
+    std::cout << "顶点数量: " << getVertexCount() << std::endl;
+    std::cout << "边数量: " << getEdgeCount() << std::endl;
 
     // 按类型统计顶点
-    cout << "\n顶点类型统计:" << endl;
+    std::cout << "\n顶点类型统计:" << std::endl;
     for (int i = 0; i < 4; i++) {
         VertexType type = static_cast<VertexType>(i);
         int count = countVerticesByType(type);
         if (count > 0) {
-            cout << "  " << getVertexTypeString(type) << ": " << count << "个" << endl;
+            std::cout << "  " << getVertexTypeString(type) << ": " << count << "个" << std::endl;
         }
     }
 
-    cout << "\n顶点列表:" << endl;
+    std::cout << "\n顶点列表:" << std::endl;
     for (const auto& vertex : vertices) {
-        cout << "  [ID:" << vertex.id << "] " << vertex.name
+        std::cout << "  [ID:" << vertex.id << "] " << vertex.name
             << " (类型:" << getVertexTypeString(vertex.type)
             << ", 坐标:" << vertex.position.to_string()
-            << ", 着火:" << (vertex.isBurning ? "是" : "否") << ")" << endl;
+            << ", 着火:" << (vertex.isBurning ? "是" : "否") << ")" << std::endl;
     }
 
-    cout << "\n邻接表:" << endl;
+    std::cout << "\n邻接表:" << std::endl;
     for (const auto& pair : adjacencyList) {
         if (!pair.second.empty()) {
-            cout << "  顶点 [" << pair.first << "]:" << getVertexName(pair.first) << " -> ";
+            std::cout << "  顶点 [" << pair.first << "]:" << getVertexName(pair.first) << " -> ";
             for (const Edge& edge : pair.second) {
-                cout << edge.to << "(" << edge.distance << "m";
-                if (edge.riskLevel > 0) cout << ", 风险:" << edge.riskLevel;
-                if (edge.congestion > 0) cout << ", 拥堵:" << edge.congestion;
-                cout << ") ";
+                std::cout << edge.to << "(" << edge.distance << "m";
+                if (edge.riskLevel > 0) std::cout << ", 风险:" << edge.riskLevel;
+                if (edge.congestion > 0) std::cout << ", 拥堵:" << edge.congestion;
+                std::cout << ") ";
             }
-            cout << endl;
+            std::cout << std::endl;
         }
     }
-    cout << "=================================" << endl;
+    std::cout << "=================================" << std::endl;
 }
-
-
-
-
 
 // 3.核心算法
 
 // 使用Dijkstra算法查找最短路径
-vector<int> Graph::findShortestPath(int startId, int endId, bool emergencyMode) {
+std::vector<int> Graph::findShortestPath(int startId, int endId, bool emergencyMode) const{
     // 1. 参数验证
     if (findVertexIndex(startId) == -1) {
-        cerr << "起点ID " << startId << " 不存在！" << endl;
+        std::cout << "起点ID " << startId << " 不存在！" << std::endl;
         return {};
     }
     if (findVertexIndex(endId) == -1) {
-        cerr << "终点ID " << endId << " 不存在！" << endl;
+        std::cout << "终点ID " << endId << " 不存在！" << std::endl;
         return {};
     }
 
     // 2. 起点和终点相同的情况
     if (startId == endId) {
-        cout << "起点和终点相同！" << endl;
+        std::cout << "起点和终点相同！" << std::endl;
         return { startId };
     }
 
     // 3. 特殊检查：如果终点着火且是紧急模式，直接返回不可达
     if (emergencyMode) {
-        Vertex* endVertex = getVertex(endId);
+        const Vertex* endVertex = getVertex(endId);
         if (endVertex && endVertex->isBurning) {
-            cout << "终点着火，不可达！" << endl;
+            std::cout << "终点着火，不可达！" << std::endl;
             return {};
         }
     }
 
     // 4. 预检查连通性
     if (!isConnected(startId, endId, emergencyMode)) {
-        cout << "从 " << getVertex(startId)->name << " 到 "
-            << getVertex(endId)->name << " 不连通！" << endl;
+        std::cout << "从 " << getVertex(startId)->name << " 到 "
+            << getVertex(endId)->name << " 不连通！" << std::endl;
         return {};
     }
 
     // 5. 初始化数据结构
-    unordered_map<int, double> dist;
-    unordered_map<int, int> prev;
-    unordered_map<int, bool> visited;
-    priority_queue<DijkstraNode, vector<DijkstraNode>, greater<DijkstraNode>> pq;
+    std::unordered_map<int, double> dist;
+    std::unordered_map<int, int> prev;
+    std::unordered_map<int, bool> visited;
+    std::priority_queue<DijkstraNode, std::vector<DijkstraNode>, std::greater<DijkstraNode>> pq;
 
     // 初始化所有节点
     for (const auto& vertex : vertices) {
-        dist[vertex.id] = numeric_limits<double>::max();
+        dist[vertex.id] = std::numeric_limits<double>::max();
         prev[vertex.id] = -1;
         visited[vertex.id] = false;
     }
@@ -496,7 +496,7 @@ vector<int> Graph::findShortestPath(int startId, int endId, bool emergencyMode) 
 
         // 遍历所有邻接边
         if (adjacencyList.find(u) != adjacencyList.end()) {
-            for (const Edge& edge : adjacencyList[u]) {
+            for (const Edge& edge : adjacencyList.at(u)) {
                 int v = edge.to;
 
                 // 如果邻接节点已访问，跳过
@@ -504,7 +504,7 @@ vector<int> Graph::findShortestPath(int startId, int endId, bool emergencyMode) 
 
                 // 在紧急模式下，如果邻接节点着火，跳过该边
                 if (emergencyMode) {
-                    Vertex* neighbor = getVertex(v);
+                    const Vertex* neighbor = getVertex(v);
                     if (neighbor && neighbor->isBurning) {
                         continue;
                     }
@@ -525,19 +525,19 @@ vector<int> Graph::findShortestPath(int startId, int endId, bool emergencyMode) 
     }
 
     // 7. 检查是否可达（理论上应该可达，因为预检查过，但保留作为防护）
-    if (dist[endId] == numeric_limits<double>::max()) {
-        cout << "从 " << startId << " 到 " << endId << " 不可达" << endl;
+    if (dist[endId] == std::numeric_limits<double>::max()) {
+        std::cout << "从 " << startId << " 到 " << endId << " 不可达" << std::endl;
         return {};
     }
 
     // 8. 重建路径（从终点到起点）
-    vector<int> path;
+    std::vector<int> path;
     for (int at = endId; at != -1; at = prev[at]) {
         path.push_back(at);
 
         // 安全防护：防止无限循环
         if (path.size() > vertices.size() + 1) {
-            cerr << "路径重建出现循环！" << endl;
+            std::cout << "路径重建出现循环！" << std::endl;
             return {};
         }
     }
@@ -547,7 +547,7 @@ vector<int> Graph::findShortestPath(int startId, int endId, bool emergencyMode) 
 
     // 9. 验证路径有效性
     if (path.empty() || path[0] != startId) {
-        cerr << "路径重建错误：起点不匹配" << endl;
+        std::cout << "路径重建错误：起点不匹配" << std::endl;
         return {};
     }
 
@@ -555,27 +555,34 @@ vector<int> Graph::findShortestPath(int startId, int endId, bool emergencyMode) 
 }
 
 // 多出口疏散方案
-vector<pair<int, double>> Graph::findMultipleExits(int startId, bool emergencyMode) {
-    vector<pair<int, double>> results;
+std::vector<Graph::ExitID_Length_Path> Graph::findMultipleExits(
+    int startId, bool emergencyMode
+)const{
+    using ELP = Graph::ExitID_Length_Path;
+    std::vector<ELP> results;
 
     // 获取所有出口
-    vector<int> exitIds = getVerticesByType(VertexType::EXIT);
+    std::vector<int> exitIds = getVerticesByType(VertexType::EXIT);
     if (exitIds.empty()) {
-        cout << "系统中没有出口！" << endl;
+        std::cout << "系统中没有出口！" << std::endl;
         return results;
     }
 
     // 计算到每个出口的路径
     for (int exitId : exitIds) {
-        vector<int> path = findShortestPath(startId, exitId, emergencyMode);
+        std::vector<int> path = findShortestPath(startId, exitId, emergencyMode);
+        results.reserve(exitIds.size());
         if (!path.empty()) {
             double totalWeight = calculatePathWeight(path, emergencyMode);
-            results.push_back({ exitId, totalWeight });
+            results.emplace_back(exitId, totalWeight, std::move(path));
         }
     }
 
     // 按权重排序
-    sort(results.begin(), results.end(), [](const pair<int, double>& a, const pair<int, double>& b) {return a.second < b.second;});
+    std::sort(
+        results.begin(), results.end(), 
+        [](const ELP& a,const ELP& b){return a.length < b.length;}
+    );
 
     return results;
 }
@@ -585,14 +592,14 @@ bool Graph::isAreaReachable(int areaId, bool emergencyMode) {
     // 1. 检查目标区域是否存在
     Vertex* target = getVertex(areaId);
     if (!target) {
-        cout << "区域ID " << areaId << " 不存在！" << endl;
+        std::cout << "区域ID " << areaId << " 不存在！" << std::endl;
         return false;
     }
 
     // 2. 获取所有出口
-    vector<int> exitIds = getVerticesByType(VertexType::EXIT);
+    std::vector<int> exitIds = getVerticesByType(VertexType::EXIT);
     if (exitIds.empty()) {
-        cout << "系统中没有出口！" << endl;
+        std::cout << "系统中没有出口！" << std::endl;
         return false;
     }
 
@@ -608,14 +615,14 @@ bool Graph::isAreaReachable(int areaId, bool emergencyMode) {
 
         // 使用 BFS 检查连通性（比 Dijkstra 更快）
         if (isConnected(areaId, exitId, emergencyMode)) {
-            cout << "区域 " << target->name << " 可到达出口 "
-                << getVertex(exitId)->name << endl;
+            std::cout << "区域 " << target->name << " 可到达出口 "
+                << getVertex(exitId)->name << std::endl;
             return true;
         }
     }
 
     // 4. 所有出口都无法到达
-    cout << "区域 " << target->name << " 无法到达任何出口" << endl;
+    std::cout << "区域 " << target->name << " 无法到达任何出口" << std::endl;
     return false;
 }
 
@@ -640,8 +647,8 @@ bool Graph::isConnected(int startId, int endId, bool emergencyMode) const {
     }
 
     // 4. BFS遍历
-    unordered_map<int, bool> visited;
-    queue<int> q;
+    std::unordered_map<int, bool> visited;
+    std::queue<int> q;
 
     visited[startId] = true;
     q.push(startId);
@@ -681,3 +688,18 @@ bool Graph::isConnected(int startId, int endId, bool emergencyMode) const {
     // 5. BFS结束未找到终点
     return false;
 }
+
+Graph::Graph(Graph&& that)noexcept
+    : vertices(std::move(that.vertices))
+    , adjacencyList(std::move(that.adjacencyList))
+    , idToIndexMap(std::move(that.idToIndexMap)){}
+
+Graph& Graph::operator=(Graph&& that)noexcept{
+    if(this != &that){
+        this->vertices      = std::move(that.vertices);
+        this->adjacencyList = std::move(that.adjacencyList);
+        this->idToIndexMap  = std::move(that.idToIndexMap);
+    }
+    return *this;
+}
+

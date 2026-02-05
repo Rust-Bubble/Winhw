@@ -1,5 +1,4 @@
 #pragma once
-#include"head.h"
 
 enum class EdgeType {
     STAIR,              // Â¥ÌÝ
