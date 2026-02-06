@@ -14,11 +14,12 @@ private:
     
 public:
     struct ExitID_Length_Path{
-        int exitID;
-        double length;
-        std::vector<int> path;
-        ExitID_Length_Path(int _exitid, double _length, std::vector<int>&& _path)
-            : exitID(_exitid), length(_length), path(std::move(_path)){};
+        int exitID;             //出口id
+        double length;          //路径长度
+        std::vector<int> path;  //具体路径
+        std::vector<Edge>edges; //途经的边
+        ExitID_Length_Path(int _exitid = -1, double _length = numeric_limits<double>::max(), std::vector<int>&& _path = {},vector<Edge>_edges = {})
+            : exitID(_exitid), length(_length), path(std::move(_path)),edges(move(_edges)){};
     };
     /////////////////////////////
     // 1.编辑操作
@@ -106,7 +107,8 @@ public:
 
     ///////////////////////////////
     // 3.核心算法
-    std::vector<int> findShortestPath(int startId, int endId, bool emergencyMode = false)const;// 使用Dijkstra算法查找最短路径
+    using ELP = Graph::ExitID_Length_Path;
+    ELP findShortestPath(int startId, int endId, bool emergencyMode = false)const;// 使用Dijkstra算法查找最短路径
     // 多出口疏散方案
     std::vector<ExitID_Length_Path> findMultipleExits(int startId, bool emergencyMode = false)const;
     bool isAreaReachable(int areaId, bool emergencyMode = false);                           // 出口可达性检测（判断“当前点”能否到达某个“出口”）

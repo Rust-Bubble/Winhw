@@ -90,4 +90,4 @@ if __name__ == "__main__":
         filename = '/map' + str(i) + '.csv'
         filepath = pos + filename  # 构造完整文件路径
         GeneratePointMap(size, filepath)
-        #GenerateEdges(size, filepath)
+

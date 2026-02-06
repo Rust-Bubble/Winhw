@@ -89,7 +89,7 @@ void Graph::addEdge(const Edge& edge) {
     if (!edgeExists) {
         std::cout << "添加边: " << getVertex(edge.from)->name << " <-> " << getVertex(edge.to)->name
             << " (距离: " << edge.distance*100 << "m)"
-            <<"中转点坐标：(" <<edge.intermediate_point.first<<","<<edge.intermediate_point.second<<")" << std::endl;
+            <<" 中转点坐标：(" <<edge.intermediate_point.first<<","<<edge.intermediate_point.second<<")" << std::endl;
     }
 }
 // 删除节点
@@ -443,23 +443,25 @@ void Graph::printGraph() const {
 }
 
 // 3.核心算法
-
+using ELP = Graph::ExitID_Length_Path;
 // 使用Dijkstra算法查找最短路径
-std::vector<int> Graph::findShortestPath(int startId, int endId, bool emergencyMode) const{
+ELP Graph::findShortestPath(int startId, int endId, bool emergencyMode) const{
+    using ELP = Graph::ExitID_Length_Path;
+    vector<Edge>result;//记录经过的边
     // 1. 参数验证
     if (findVertexIndex(startId) == -1) {
         std::cout << "起点ID " << startId << " 不存在！" << std::endl;
-        return {};
+        return ELP();
     }
     if (findVertexIndex(endId) == -1) {
         std::cout << "终点ID " << endId << " 不存在！" << std::endl;
-        return {};
+        return ELP();
     }
 
     // 2. 起点和终点相同的情况
     if (startId == endId) {
         std::cout << "起点和终点相同！" << std::endl;
-        return { startId };
+        return ELP();
     }
 
     // 3. 特殊检查：如果终点着火且是紧急模式，直接返回不可达
@@ -467,7 +469,7 @@ std::vector<int> Graph::findShortestPath(int startId, int endId, bool emergencyM
         const Vertex* endVertex = getVertex(endId);
         if (endVertex && endVertex->isBurning) {
             std::cout << "终点着火，不可达！" << std::endl;
-            return {};
+            return ELP();
         }
     }
 
@@ -475,7 +477,7 @@ std::vector<int> Graph::findShortestPath(int startId, int endId, bool emergencyM
     if (!isConnected(startId, endId, emergencyMode)) {
         std::cout << "从 " << getVertex(startId)->name << " 到 "
             << getVertex(endId)->name << " 不连通！" << std::endl;
-        return {};
+        return ELP();
     }
 
     // 5. 初始化数据结构
@@ -483,6 +485,7 @@ std::vector<int> Graph::findShortestPath(int startId, int endId, bool emergencyM
     std::unordered_map<int, int> prev;
     std::unordered_map<int, bool> visited;
     std::priority_queue<DijkstraNode, std::vector<DijkstraNode>, std::greater<DijkstraNode>> pq;
+    double weight = 0.0;//记录路径权重
 
     // 初始化所有节点
     for (const auto& vertex : vertices) {
@@ -514,6 +517,7 @@ std::vector<int> Graph::findShortestPath(int startId, int endId, bool emergencyM
         // 遍历所有邻接边
         if (adjacencyList.find(u) != adjacencyList.end()) {
             for (const Edge& edge : adjacencyList.at(u)) {
+                //边终点坐标
                 int v = edge.to;
 
                 // 如果邻接节点已访问，跳过
@@ -535,7 +539,9 @@ std::vector<int> Graph::findShortestPath(int startId, int endId, bool emergencyM
                 if (newDist < dist[v]) {
                     dist[v] = newDist;
                     prev[v] = u;
-                    pq.push({ v, newDist });
+                    pq.push({ v, newDist });//修改
+                    result.push_back(edge);
+                    weight += edge.getWeight(emergencyMode);
                 }
             }
         }
@@ -544,9 +550,9 @@ std::vector<int> Graph::findShortestPath(int startId, int endId, bool emergencyM
     // 7. 检查是否可达（理论上应该可达，因为预检查过，但保留作为防护）
     if (dist[endId] == std::numeric_limits<double>::max()) {
         std::cout << "从 " << startId << " 到 " << endId << " 不可达" << std::endl;
-        return {};
+        return ELP();
     }
-
+    
     // 8. 重建路径（从终点到起点）
     std::vector<int> path;
     for (int at = endId; at != -1; at = prev[at]) {
@@ -555,20 +561,22 @@ std::vector<int> Graph::findShortestPath(int startId, int endId, bool emergencyM
         // 安全防护：防止无限循环
         if (path.size() > vertices.size() + 1) {
             std::cout << "路径重建出现循环！" << std::endl;
-            return {};
+            return ELP();
         }
     }
 
     // 反转路径（起点->终点）
     reverse(path.begin(), path.end());
+    reverse(result.begin(), result.end());
 
     // 9. 验证路径有效性
     if (path.empty() || path[0] != startId) {
         std::cout << "路径重建错误：起点不匹配" << std::endl;
-        return {};
+        return ELP();
     }
-
-    return path;
+    
+    ELP solution = ELP(endId, weight,move(path), move(result));
+    return solution;//直接输出elp解决方案
 }
 
 // 多出口疏散方案
@@ -587,12 +595,13 @@ std::vector<Graph::ExitID_Length_Path> Graph::findMultipleExits(
 
     // 计算到每个出口的路径
     for (int exitId : exitIds) {
-        std::vector<int> path = findShortestPath(startId, exitId, emergencyMode);
+        /*std::vector<int> path = findShortestPath(startId, exitId, emergencyMode);
         results.reserve(exitIds.size());
         if (!path.empty()) {
             double totalWeight = calculatePathWeight(path, emergencyMode);
             results.emplace_back(exitId, totalWeight, std::move(path));
-        }
+        }*/
+        results.emplace_back(findShortestPath(startId, exitId, emergencyMode));
     }
 
     // 按权重排序
