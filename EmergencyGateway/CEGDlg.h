@@ -18,9 +18,9 @@ protected:
         Graph graph;
         std::vector<int> escBegin;
         std::vector<int> escEnd;
-        int   minX, minY, maxX, maxY;
+        double minX, minY, maxX, maxY;
         GraphInfo() = default;
-        GraphInfo(Graph&& g, int minx, int miny, int maxx, int maxy);
+        GraphInfo(Graph&& g, double minx, double miny, double maxx, double maxy);
     };
     struct PathInfo{
         double length;
@@ -52,30 +52,34 @@ protected:
     HICON     m_hIcon;
     ULONG_PTR m_gdiplusToken = 0;
     std::vector<GraphInfo> graphInfos;
-    std::vector<PathInfo> paths;
+    std::vector<PathInfo>  paths;
 
     const wchar_t *kVERTEX_DORMITORY = L".\\res\\Vertex_Dormitory.png"       ;
     const wchar_t *kVERTEX_EXIT      = L".\\res\\Vertex_Exit.png"            ;
     const wchar_t *kVERTEX_FLOORNODE = L".\\res\\Vertex_FloorNode.png"       ;
     const wchar_t *kVERTEX_TBUILDING = L".\\res\\Vertex_TeachingBuilding.png";
     const wchar_t *kVERTEX_UNKNOWN   = L".\\res\\Vertex_Unknown.png"         ;
+    const wchar_t *kVERTEX_INTERM    = L".\\res\\Vertex_Intermediate.png"    ;
+
     const wchar_t *kSTR_VERTEX_NONE     = L"--无--";
     const wchar_t* kSTR_VERTEX_ALL_EXIT = L"--所有出口--";
     const COLORREF kCOLOR_ON_FIRE     = RGB(255,   0,   0);
+    const COLORREF kCOLOR_PATH_HINT   = RGB(  0, 255,   0);
     // 白色
     const COLORREF kCOLOR_DORM_W      = RGB(150,   0,   0);
     const COLORREF kCOLOR_EXIT_W      = RGB(  0, 150,   0);
     const COLORREF kCOLOR_FLOORNODE_W = RGB(200,   0, 200);
     const COLORREF kCOLOR_TBUILDING_W = RGB(  0,   0, 255);
     const COLORREF kCOLOR_UNKNOWN_W   = RGB(  0,   0,   0);
+    const COLORREF kCOLOR_INTERM_W    = RGB(150, 150,   0);
     const COLORREF kCOLOR_BKG_W       = RGB(255, 255, 255);
-    const COLORREF kCOLOR_PATH_HINT   = RGB(  0, 255,   0);
     // 黑色
     const COLORREF kCOLOR_DORM_D      = RGB(200,   0,   0);
     const COLORREF kCOLOR_EXIT_D      = RGB(  0, 200,   0);
     const COLORREF kCOLOR_FLOORNODE_D = RGB(200,   0, 200);
     const COLORREF kCOLOR_TBUILDING_D = RGB(150, 150, 255);
     const COLORREF kCOLOR_UNKNOWN_D   = RGB(150, 150, 150);
+    const COLORREF kCOLOR_INTERM_D    = RGB(180, 180,   0);
     const COLORREF kCOLOR_BKG_D       = RGB( 64,  64,  64);
     
     const int      kLENGTH_MARGIN     = 40;
@@ -102,11 +106,11 @@ protected:
     // @param begin 起点。
     // @param end   终点。
     // @param color 绘制色彩
-    void PaintEdge(Vec2Int begin, Vec2Int end, COLORREF color, int stroke);
+    void PaintEdge(Vec2 begin, Vec2 end, COLORREF color, int stroke);
     // 绘制点。
     // @param pos  绘制位置。
     // @param type 绘制节点类型。
-    void PaintVertex(Vec2Int pos, VertexType type, bool isOnFire, bool isSelected);
+    void PaintVertex(Vec2 pos, VertexType type, bool isOnFire, bool isSelected);
     // 绘制多个文字。使用居中对其。
     // @param pos    绘制位置。
     // @param textSize 文字大小。
@@ -114,7 +118,7 @@ protected:
     // @param color  对应颜色的数组。
     // @param num    要绘制的文本数量。
     void PaintText(
-        Vec2Int pos, int textSize, bool doRemoveBkg,
+        Vec2 pos, int textSize, bool doRemoveBkg,
         const char** texts, const COLORREF colors[], int num,
         Gdiplus::StringAlignment aHorizonal = Gdiplus::StringAlignmentCenter,
         Gdiplus::StringAlignment aVertical = Gdiplus::StringAlignmentCenter
@@ -125,8 +129,8 @@ protected:
     void PaintEdges();
     // 清除绘图内容。
     void ClearGraphDisplay();
-    Vec2Int GetTransformedPosition(
-        Vec2Int oPos, const GraphInfo& info, const CRect& rectTM
+    Vec2 GetTransformedPosition(
+        Vec2 oPos, const GraphInfo& info, const CRect& rectTM
     );
     int GetTabHeight() const;
     DECLARE_MESSAGE_MAP()

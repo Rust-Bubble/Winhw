@@ -34,6 +34,12 @@ struct Vec2 {
     Vec2 operator-(const Vec2& other) const {
         return Vec2(x - other.x, y - other.y);
     }
+    bool operator==(const Vec2& other) const {
+        return x == other.x && y == other.y;
+    }
+    bool operator!=(const Vec2& other) const {
+        return !(*this == other);
+    }
 };
 
 // 一个二维向量结构体，用于表示坐标
@@ -67,5 +73,11 @@ struct Vec2Int {
     }
     Vec2Int operator-(const Vec2Int& other) const {
         return Vec2Int(x - other.x, y - other.y);
+    }
+    bool operator==(const Vec2Int& other) const {
+        return x == other.x && y == other.y;
+    }
+    bool operator!=(const Vec2Int& other) const {
+        return !(*this==other);
     }
 };

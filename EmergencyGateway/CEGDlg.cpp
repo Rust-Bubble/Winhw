@@ -209,11 +209,11 @@ void CEGMain::AddNewGraph(Graph& g, const wchar_t* name){
     item.pszText = const_cast<wchar_t*>(name);  // 允许const wchar_t* 赋值给 wchar_t*
 
     std::cout << "[CEGMain::AddNewGraph]为新地图检索绘制边界……" << std::endl;
-    int minX = (std::numeric_limits<int>::max)(), 
-        minY = (std::numeric_limits<int>::max)(), 
-        maxX = (std::numeric_limits<int>::min)(), 
-        maxY = (std::numeric_limits<int>::min)(),
-        vSize = g.getVertexCount();
+    double minX = (std::numeric_limits<double>::max)(), 
+           minY = (std::numeric_limits<double>::max)(), 
+           maxX = (std::numeric_limits<double>::min)(), 
+           maxY = (std::numeric_limits<double>::min)(),
+           vSize = g.getVertexCount();
     for(int i = 0; i < vSize; ++i){
         Vertex* v = g.getVertex(i+1);
         if(!v){
@@ -235,7 +235,7 @@ void CEGMain::AddNewGraph(Graph& g, const wchar_t* name){
     );
 }
 
-void CEGMain::PaintEdge(Vec2Int begin, Vec2Int end, COLORREF color, int stroke){
+void CEGMain::PaintEdge(Vec2 begin, Vec2 end, COLORREF color, int stroke){
     RECT rectArea;
     this->mfc.tabMap->GetClientRect(&rectArea);
 
@@ -259,7 +259,7 @@ void CEGMain::PaintEdge(Vec2Int begin, Vec2Int end, COLORREF color, int stroke){
 
 }
 
-void CEGMain::PaintVertex(Vec2Int pos, VertexType type, bool isOnFire, bool isSelected){
+void CEGMain::PaintVertex(Vec2 pos, VertexType type, bool isOnFire, bool isSelected){
     CClientDC dc(this->mfc.picctrlPaintArea);
     COLORREF color;
     const wchar_t* result;
@@ -279,6 +279,10 @@ void CEGMain::PaintVertex(Vec2Int pos, VertexType type, bool isOnFire, bool isSe
     case VertexType::TEACHING_BUILDING:
         result = CEGMain::kVERTEX_TBUILDING;
         color  = this->isDarkMode ? CEGMain::kCOLOR_TBUILDING_D    : CEGMain::kCOLOR_TBUILDING_W    ;
+        break;
+    case VertexType::INTERMEDIATE:
+        result = CEGMain::kVERTEX_INTERM;
+        color = this->isDarkMode ? CEGMain::kCOLOR_INTERM_D        : CEGMain::kCOLOR_INTERM_W       ;
         break;
     case VertexType::UNKNOWN:
     default:
@@ -401,7 +405,7 @@ CString CEGMain::BrowseForFile(LPCTSTR lpszTitle){
 }
 
 void CEGMain::PaintText(
-    Vec2Int pos, int textSize, bool doRemoveBkg,
+    Vec2 pos, int textSize, bool doRemoveBkg,
     const char** texts, const COLORREF colors[], int num,
     Gdiplus::StringAlignment aHorizonal, 
     Gdiplus::StringAlignment aVertical
@@ -437,7 +441,10 @@ void CEGMain::PaintVertexes(){
     std::cout << "[CEGMain::PaintVertexes]绘制所有顶点……";
     CRect rectPaint;
     this->mfc.picctrlPaintArea->GetClientRect(&rectPaint);
-    rectPaint.DeflateRect(CEGMain::kLENGTH_MARGIN, CEGMain::kLENGTH_MARGIN);
+    rectPaint.DeflateRect(
+        CEGMain::kLENGTH_MARGIN, CEGMain::kLENGTH_MARGIN,
+        CEGMain::kLENGTH_MARGIN, CEGMain::kLENGTH_MARGIN
+    );
     rectPaint.top += this->GetTabHeight();
     const auto& gInfo      = this->graphInfos.at(this->currentIdx);
     const int&  vSize      = gInfo.graph.getVertexCount();
@@ -447,7 +454,7 @@ void CEGMain::PaintVertexes(){
         selEnd   = (selEnd > 1   ) ? gInfo.escEnd[selEnd - 2    ] : -1;
     for(int i = 1; i <= vSize; i++){
         std::cout << i << ", ";
-        Vec2Int rPos = this->GetTransformedPosition(
+        Vec2 rPos = this->GetTransformedPosition(
             gInfo.graph.getVertex(i)->position, gInfo, rectPaint
         );
         const Vertex*             v = gInfo.graph.getVertex(i);
@@ -463,10 +470,6 @@ void CEGMain::PaintVertexes(){
             const char* texts[1] = {v->name.c_str()};
             COLORREF   colors[1] = {RGB(255, 255, 255)};
             switch(v->type){
-            case VertexType::UNKNOWN:
-            default:
-                colors[0] = this->isDarkMode ? CEGMain::kCOLOR_UNKNOWN_D    : CEGMain::kCOLOR_UNKNOWN_W     ;
-                break;
             case VertexType::TEACHING_BUILDING:
                 colors[0] = this->isDarkMode ? CEGMain::kCOLOR_TBUILDING_D  : CEGMain::kCOLOR_TBUILDING_W   ;
                 break;
@@ -477,11 +480,18 @@ void CEGMain::PaintVertexes(){
                 colors[0] = this->isDarkMode ? CEGMain::kCOLOR_EXIT_D       : CEGMain::kCOLOR_EXIT_W        ;
                 break;
             case VertexType::FLOOR_NODE:
-                colors[0] = this->isDarkMode ? CEGMain::kCOLOR_FLOORNODE_D  : CEGMain::kCOLOR_FLOORNODE_W   ;
+                colors[0] = this->isDarkMode ? CEGMain::kCOLOR_FLOORNODE_D : CEGMain::kCOLOR_FLOORNODE_W    ;
+                break;
+            case VertexType::INTERMEDIATE:
+                colors[0] = this->isDarkMode ? CEGMain::kCOLOR_INTERM_D    : CEGMain::kCOLOR_INTERM_W       ;
+                break;
+            case VertexType::UNKNOWN:
+            default:
+                colors[0] = this->isDarkMode ? CEGMain::kCOLOR_UNKNOWN_D : CEGMain::kCOLOR_UNKNOWN_W;
                 break;
             }
             bool isBeneathMidTop = rPos.y < (rectPaint.top * 3 + rectPaint.bottom) / 4;
-            Vec2Int pText(0, (isBeneathMidTop ? 1 : -1) * ((isSelected ? 40 : 30) + (isSurelyOnFire ? 6:0)) );
+            Vec2 pText(0, (isBeneathMidTop ? 1 : -1) * ((isSelected ? 40 : 30) + (isSurelyOnFire ? 6:0)) );
             this->PaintText(rPos + pText, (isSelected ? 24 : 18), true, texts, colors, 1,
                 Gdiplus::StringAlignmentCenter
             );
@@ -495,37 +505,41 @@ void CEGMain::PaintEdges(){
     std::cout << "[CEGMain::PaintEdges]绘制所有边……";
     CRect rectPaint, rectTab;
     this->mfc.picctrlPaintArea->GetClientRect(&rectPaint);
-    rectPaint.DeflateRect(CEGMain::kLENGTH_MARGIN, CEGMain::kLENGTH_MARGIN);
+    rectPaint.DeflateRect(
+        CEGMain::kLENGTH_MARGIN, CEGMain::kLENGTH_MARGIN,
+        CEGMain::kLENGTH_MARGIN, CEGMain::kLENGTH_MARGIN
+    );
 
     rectPaint.top += this->GetTabHeight();
     const GraphInfo& gInfo = this->graphInfos.at(this->currentIdx);
     const size_t&    vSize = gInfo.graph.getVertexCount();
 
     // 编写哈希函数，用于unordered_set，检查当前边是否已绘制。
-    struct PairHash{
-        size_t operator()(const std::pair<int, int>& p) const {
-            return (static_cast<size_t>(p.first) < 32) | static_cast<size_t>(p.second);
-        }
-    };
-    std::unordered_set<std::pair<int, int>, PairHash> checkEdge;
+    //struct PairHash{
+    //    size_t operator()(const std::pair<int, int>& p) const {
+    //        return (static_cast<size_t>(p.first) < 32) ^ static_cast<size_t>(p.second);
+    //    }
+    //};
+    //std::unordered_set<std::pair<int, int>, PairHash> checkEdge;
 
-    auto _PaintEdge = [&checkEdge, this, &gInfo, &rectPaint](
-        const Edge& e, const COLORREF& color, int stroke
+    auto _PaintEdge = [/*&checkEdge,*/ this, &gInfo, &rectPaint](
+        const Edge& e, const COLORREF& color, int stroke, bool doCheckPainted = true
     ) ->void {	
         const int &from = e.from, &to = e.to;
-        if(checkEdge.find({from, to}) != checkEdge.end())return;
+
+        std::pair<int, int> edge = (from < to) ? std::make_pair(from, to) : std::make_pair(to, from);
+        //if(doCheckPainted && checkEdge.find(edge) != checkEdge.end())return;
         std::cout << from << "->" << to << ", ";
 
-        Vec2Int begin = this->GetTransformedPosition(
+        Vec2 begin = this->GetTransformedPosition(
             gInfo.graph.getVertex(from)->position, gInfo, rectPaint
         );
-        Vec2Int end = this->GetTransformedPosition(
+        Vec2 end = this->GetTransformedPosition(
             gInfo.graph.getVertex(to)->position, gInfo, rectPaint
         );
 
         this->PaintEdge(begin, end, color, stroke);
 
-        Vec2Int mid((begin.x + end.x) / 2, (begin.y + end.y) / 2);
         char** texts = new char*[3]{
             new char[26]{}, new char[26]{}, new char[26]{}
         };
@@ -545,21 +559,34 @@ void CEGMain::PaintEdges(){
             colors[totalLen] = RGB(128, 128, 128);
             ++totalLen;
         }
+        Vec2 drawPnt((begin.x + end.x) / 2, (begin.y + end.y) / 2);
+
         if(this->mfc.checkRandTag->GetCheck() == BST_CHECKED){
             srand(time(nullptr) + rand()*rand() + 3);
             int Rand = rand() % 7 + 2; // (2, 8)
-            mid.x = (begin.x * Rand + end.x*(10 - Rand)) / 10;
-            mid.y = (begin.y * Rand + end.y*(10 - Rand)) / 10;
+            drawPnt.x = (begin.x * Rand + end.x*(10 - Rand)) / 10;
+            drawPnt.y = (begin.y * Rand + end.y*(10 - Rand)) / 10;
         }
-        this->PaintText(mid, 16, true, const_cast<const char**>(texts), colors, totalLen);
+        this->PaintText(drawPnt, 16, true, const_cast<const char**>(texts), colors, totalLen);
 
-        checkEdge.insert({from, to});
-        checkEdge.insert({to, from});
+        //checkEdge.insert(edge);
         std::cout << "\b\b[V], ";
 
         for(int i = 0; i < 3; i++)delete[] texts[i];
         delete[] texts;
     };
+
+    // 漏洞：逃生路可能会给正常路径覆盖。
+    // 绘制正常路径.
+
+    std::cout << "正常路径：";
+    for(int i = 1; i <= vSize; i++){
+        const std::vector<Edge>& edges = gInfo.graph.getEdgesFrom(i);
+        for(const auto& edge : edges){
+            _PaintEdge(edge, RGB(128, 128, 128), 2);
+        }
+    }
+    std::cout << "\b\b。" << std::endl;
 
     // 绘制逃脱路径。
     std::cout << "逃生路径：";
@@ -581,20 +608,17 @@ void CEGMain::PaintEdges(){
             }
         }
     }
-    
-    std::cout << "正常路径：";
-    // 绘制正常路径。
-    for(int i = 1; i <= vSize; i++){
-        const std::vector<Edge>& edges = gInfo.graph.getEdgesFrom(i);
-        for(const auto& edge : edges){
-            _PaintEdge(edge, RGB(128, 128, 128), 2);
-        }
-    }
-    std::cout << "\b\b。" << std::endl;
 }
 void CEGMain::UpdateGraph(){
     std::cout << "[CEGMain::UpdateGraph]更新当前绘图内容……" << std::endl;
     CClientDC dc(this->mfc.picctrlPaintArea);
+    // CRect     rectPaintArea;
+    // CDC       memDC;
+    // CBitmap   bitmap;
+    // this->mfc.picctrlPaintArea.GetP
+    // memDC.CreateCompatibleDC(&dc);
+    // bitmap.CreateCompatibleBitmap(&dc, 
+
     this->ClearGraphDisplay();
 
     if(this->graphInfos.empty()){
@@ -643,8 +667,8 @@ void CEGMain::ClearGraphDisplay(){
     dc.FillSolidRect(&rectPaint, this->isDarkMode ? kCOLOR_BKG_D : kCOLOR_BKG_W);
 }
 
-Vec2Int CEGMain::GetTransformedPosition(
-    Vec2Int oPos, const GraphInfo& gInfo,const CRect& rectTM
+Vec2 CEGMain::GetTransformedPosition(
+    Vec2 oPos, const GraphInfo& gInfo,const CRect& rectTM
 ){
     oPos.x = (oPos.x - gInfo.minX)*(rectTM.right - rectTM.left) 
            / (gInfo.maxX - gInfo.minX) + rectTM.left;
@@ -731,7 +755,7 @@ int CEGMain::GetCurrentPage() const{
     return this->currentIdx;
 }
 
-CEGMain::GraphInfo::GraphInfo(Graph&& g, int minx, int miny, int maxx, int maxy)
+CEGMain::GraphInfo::GraphInfo(Graph&& g, double minx, double miny, double maxx, double maxy)
     : graph(std::move(g)), minX(minx), minY(miny), maxX(maxx), maxY(maxy)
 {
     this->escEnd = this->graph.getVerticesByType(VertexType::EXIT);

@@ -8,6 +8,7 @@ enum class VertexType {
     DORMITORY,          // 宿舍
     EXIT,               // 出口
     FLOOR_NODE,         // 楼层节点
+    INTERMEDIATE,       // 中转点
 };
 
 // 点结构
@@ -15,7 +16,7 @@ struct Vertex {
     int id;                     // 唯一标识
     std::string name;                // 名称（如"一教101"）
     VertexType  type;            // 点的类型
-    Vec2Int     position;              // 用于图形显示的坐标。
+    Vec2        position;              // 用于图形显示的坐标。
     bool        isBurning;             // 是否着火
 
 
@@ -29,7 +30,7 @@ struct Vertex {
         int id = -1, 
         std::string name = "", 
         VertexType type = VertexType::DORMITORY, 
-        Vec2Int pos = Vec2Int(), 
+        Vec2 pos = Vec2(-1.0, -1.0), 
         bool isburning = false
     ) : id(id)
       , name(name)

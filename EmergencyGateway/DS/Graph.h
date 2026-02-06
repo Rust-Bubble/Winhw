@@ -81,7 +81,7 @@ public:
     // 根据id，获取顶点坐标。
     // @param id 节点id。
     // @return 节点坐标。如果节点不存在，则返回Vec2(-1, -1)。
-    Vec2Int getVertexPosition(int id) const;             // 根据id，获取顶点坐标
+    Vec2 getVertexPosition(int id) const;             // 根据id，获取顶点坐标
 
     // 根据id，获取其触发所链接的列表。
     // @param vertexId 顶点索引。
