@@ -3,7 +3,7 @@
  int main() {
      Graph G;
 
-     G.generateList("Maps/map2.csv");
+     G.generateList("Maps/map0.csv");
      G.printGraph();
      int begin_id = 9;//ÉèÖÃÆğµã
      G.findMultipleExits(begin_id);

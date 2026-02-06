@@ -88,8 +88,7 @@ void Graph::addEdge(const Edge& edge) {
 
     if (!edgeExists) {
         std::cout << "添加边: " << getVertex(edge.from)->name << " <-> " << getVertex(edge.to)->name
-            << " (距离: " << edge.distance*100 << "m)"
-            <<" 中转点坐标：(" <<edge.intermediate_point.first<<","<<edge.intermediate_point.second<<")" << std::endl;
+            << " (距离: " << edge.distance*100 << "m)"<< std::endl;
     }
 }
 // 删除节点
@@ -221,7 +220,7 @@ bool Graph::generateList(const char* path){
         if(rtype == "TEACHING_BUILDING") type = VertexType::TEACHING_BUILDING;
         else if(rtype == "DORMITORY") type = VertexType::DORMITORY;
         else if(rtype == "EXIT")type = VertexType::EXIT;
-        else type = VertexType::FLOOR_NODE;
+        else type = VertexType::FLOOR_NODE;//中转类型
         //读取坐标
         getline(ss, rx, ',');
         getline(ss, ry, ',');
@@ -268,14 +267,9 @@ bool Graph::generateList(const char* path){
         getline(ss, rdistance, ',');
         distance = stod(rdistance);
         //读取风险等级
-        getline(ss, rrisklevel, ',');
+        getline(ss, rrisklevel, '\n');
         risklevel = stoi(rrisklevel);
-        //读取中转点坐标
-        getline(ss, rx, ',');
-        getline(ss, ry, ',');
-        intermediate_point_x = stod(rx);
-        intermediate_point_y = stod(ry);
-        addEdge(Edge(beg_id, end_id, distance, tp, risklevel, congestion,intermediate_point_x,intermediate_point_y));
+        addEdge(Edge(beg_id, end_id, distance, tp, risklevel, congestion));
     }
     std::cout << "[Graph::generateList]地图生成成功" << endl;
     return true;
