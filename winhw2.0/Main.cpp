@@ -3,9 +3,10 @@
  int main() {
      Graph G;
 
-     G.generateList("Maps/map0.csv");
+     G.generateList("Maps/map2.csv");
      G.printGraph();
-     //int begin_id = 9;//设置起点
+     int begin_id = 9;//设置起点
+     G.findMultipleExits(begin_id);
      //vector<pair<int, double>> resault = G.findMultipleExits(begin_id);
      //for (int i = 0; i < resault.size(); i++)
      //{

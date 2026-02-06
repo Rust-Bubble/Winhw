@@ -447,7 +447,6 @@ using ELP = Graph::ExitID_Length_Path;
 // 使用Dijkstra算法查找最短路径
 ELP Graph::findShortestPath(int startId, int endId, bool emergencyMode) const{
     using ELP = Graph::ExitID_Length_Path;
-    vector<Edge>result;//记录经过的边
     // 1. 参数验证
     if (findVertexIndex(startId) == -1) {
         std::cout << "起点ID " << startId << " 不存在！" << std::endl;
@@ -485,7 +484,7 @@ ELP Graph::findShortestPath(int startId, int endId, bool emergencyMode) const{
     std::unordered_map<int, int> prev;
     std::unordered_map<int, bool> visited;
     std::priority_queue<DijkstraNode, std::vector<DijkstraNode>, std::greater<DijkstraNode>> pq;
-    double weight = 0.0;//记录路径权重
+    
 
     // 初始化所有节点
     for (const auto& vertex : vertices) {
@@ -539,9 +538,7 @@ ELP Graph::findShortestPath(int startId, int endId, bool emergencyMode) const{
                 if (newDist < dist[v]) {
                     dist[v] = newDist;
                     prev[v] = u;
-                    pq.push({ v, newDist });//修改
-                    result.push_back(edge);
-                    weight += edge.getWeight(emergencyMode);
+                    pq.push({ v, newDist });
                 }
             }
         }
@@ -567,7 +564,22 @@ ELP Graph::findShortestPath(int startId, int endId, bool emergencyMode) const{
 
     // 反转路径（起点->终点）
     reverse(path.begin(), path.end());
-    reverse(result.begin(), result.end());
+
+    // 路径重构完成后，根据path向量重建边集合
+    std::vector<Edge> finalEdges;
+    for (size_t i = 0; i < path.size() - 1; i++) {
+        int from = path[i];
+        int to = path[i + 1];
+
+        // 在邻接表中查找对应的边
+        for (const Edge& edge : adjacencyList.at(from)) {
+            if (edge.to == to) {
+                finalEdges.push_back(edge);
+                break;
+            }
+        }
+    }
+    
 
     // 9. 验证路径有效性
     if (path.empty() || path[0] != startId) {
@@ -575,7 +587,24 @@ ELP Graph::findShortestPath(int startId, int endId, bool emergencyMode) const{
         return ELP();
     }
     
-    ELP solution = ELP(endId, weight,move(path), move(result));
+    //输出点解决方案
+    cout << "点解决方案： ";
+    for (int i = 0; i < path.size(); i++)
+    {
+        cout << path[i];
+        if (i != path.size() - 1) cout << "->";
+        else cout << endl;
+    }
+    //输出边解决方案
+    cout << "边解决方案： ";
+    for (int i = 0; i < finalEdges.size(); i++)
+    {
+        cout << "(" << finalEdges[i].from << "," << finalEdges[i].to << ")";
+        if (i != finalEdges.size() - 1) cout << "->";
+        else cout << endl;
+    }
+    double length = calculatePathWeight(path, emergencyMode);
+    ELP solution = ELP(endId, length,move(path), move(finalEdges));
     return solution;//直接输出elp解决方案
 }
 
