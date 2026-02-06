@@ -1,0 +1,55 @@
+10
+id,name,type,position,isburning
+1,134宿舍,DORMITORY,0 9,0
+2,149教学楼,TEACHING_BUILDING,5 7,1
+3,164宿舍,DORMITORY,9 10,0
+4,121宿舍,DORMITORY,7 10,0
+5,125教学楼,TEACHING_BUILDING,0 7,0
+6,107教学楼,TEACHING_BUILDING,8 10,0
+7,出口,EXIT,4 8,0
+8,150教学楼,TEACHING_BUILDING,8 9,0
+9,103宿舍,DORMITORY,1 7,0
+10,185宿舍,DORMITORY,6 5,0
+41
+begin_id,end_id,type,congestion,distance,riskLevel
+8,2,stair,0.4,99.7,5
+7,4,road,0.3,100.97,3
+5,1,corridor,1.0,74.63,6
+6,9,corridor,0.1,37.28,7
+4,3,corridor,0.8,63.86,7
+1,6,road,0.5,77.16,2
+4,2,stair,0.4,66.57,0
+10,9,stair,0.4,44.01,0
+6,8,stair,0.3,29.3,6
+7,2,road,0.9,26.39,0
+2,1,corridor,0.7,88.92,9
+5,6,road,0.1,95.37,0
+3,8,stair,0.8,50.61,9
+9,4,corridor,0.7,69.79,5
+4,10,road,0.4,63.59,6
+9,2,corridor,0.1,45.97,8
+5,4,corridor,0.8,91.6,1
+1,3,road,0.4,39.76,1
+7,3,corridor,0.5,65.59,10
+7,9,corridor,0.8,64.34,1
+8,9,stair,0.4,68.0,9
+2,3,road,0.4,31.3,7
+5,8,stair,1.0,47.26,7
+2,6,road,0.5,30.98,9
+6,7,road,0.3,66.41,5
+6,3,corridor,0.5,29.39,7
+4,8,stair,0.4,32.02,1
+1,8,stair,0.8,61.26,1
+5,2,corridor,0.3,93.78,6
+2,10,stair,0.3,32.79,10
+8,10,road,0.2,97.01,2
+9,5,corridor,0.5,49.46,9
+3,9,corridor,0.9,71.55,1
+10,3,road,0.2,34.33,7
+10,5,corridor,0.5,28.88,6
+1,10,stair,0.6,72.74,0
+6,4,stair,0.4,60.81,7
+5,3,road,0.5,40.88,8
+7,1,road,0.6,60.34,0
+9,1,corridor,0.3,91.34,0
+4,1,stair,0.8,30.39,0

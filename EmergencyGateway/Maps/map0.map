@@ -1,0 +1,29 @@
+10
+id,name,type,position,isburning
+1,144教学楼,TEACHING_BUILDING,9 10,0
+2,164宿舍,DORMITORY,8 5,1
+3,174教学楼,TEACHING_BUILDING,8 7,1
+4,192宿舍,DORMITORY,9 6,0
+5,出口,EXIT,9 5,0
+6,114教学楼,TEACHING_BUILDING,10 2,1
+7,出口,EXIT,10 1,0
+8,144宿舍,DORMITORY,4 4,0
+9,103教学楼,TEACHING_BUILDING,7 7,0
+10,170宿舍,DORMITORY,1 9,0
+15
+begin_id,end_id,type,congestion,distance,riskLevel
+6,4,road,0.3,37.5,3
+4,3,corridor,0.1,87.16,1
+1,3,road,0.8,27.27,2
+2,1,road,0.5,65.97,1
+8,5,road,0.3,22.54,10
+5,1,road,0.2,95.79,9
+9,10,stair,0.2,89.5,7
+6,3,road,0.7,70.36,2
+4,10,road,0.9,99.2,3
+8,1,road,0.3,72.73,1
+6,9,road,0.6,80.39,8
+1,10,stair,0.7,69.53,9
+9,8,corridor,0.7,66.69,5
+7,9,stair,0.2,34.02,3
+10,5,corridor,0.3,86.93,10
