@@ -451,7 +451,7 @@ void CEGMain::PaintVertexes(){
     int selBegin = this->mfc.choiceEscBegin->GetCurSel();
         selBegin = (selBegin > 0 ) ? gInfo.escBegin[selBegin - 1] : -1;
     int selEnd   = this->mfc.choiceEscEnd->GetCurSel();
-        selEnd   = (selEnd > 1   ) ? gInfo.escEnd[selEnd - 2    ] : -1;
+        selEnd   = (selEnd > 1   ) ? this->paths[selEnd - 2].path.back() : -1;
     for(int i = 1; i <= vSize; i++){
         std::cout << i << ", ";
         Vec2 rPos = this->GetTransformedPosition(
@@ -515,20 +515,21 @@ void CEGMain::PaintEdges(){
     const size_t&    vSize = gInfo.graph.getVertexCount();
 
     // 编写哈希函数，用于unordered_set，检查当前边是否已绘制。
-    //struct PairHash{
-    //    size_t operator()(const std::pair<int, int>& p) const {
-    //        return (static_cast<size_t>(p.first) < 32) ^ static_cast<size_t>(p.second);
-    //    }
-    //};
-    //std::unordered_set<std::pair<int, int>, PairHash> checkEdge;
+    struct PairHash{
+        size_t operator()(const std::pair<int, int>& p) const {
+            return (static_cast<size_t>(p.first) < 32) ^ static_cast<size_t>(p.second);
+        }
+    };
+    std::unordered_set<std::pair<int, int>, PairHash> checkEdge;
 
-    auto _PaintEdge = [/*&checkEdge,*/ this, &gInfo, &rectPaint](
-        const Edge& e, const COLORREF& color, int stroke, bool doCheckPainted = true
+    auto _PaintEdge = [&checkEdge, this, &gInfo, &rectPaint](
+        const Edge& e, const COLORREF& color, int stroke, 
+        bool isPaintingEmergencyWay = false
     ) ->void {	
         const int &from = e.from, &to = e.to;
 
         std::pair<int, int> edge = (from < to) ? std::make_pair(from, to) : std::make_pair(to, from);
-        //if(doCheckPainted && checkEdge.find(edge) != checkEdge.end())return;
+        if(!isPaintingEmergencyWay && checkEdge.find(edge) != checkEdge.end())return;
         std::cout << from << "->" << to << ", ";
 
         Vec2 begin = this->GetTransformedPosition(
@@ -540,40 +541,45 @@ void CEGMain::PaintEdges(){
 
         this->PaintEdge(begin, end, color, stroke);
 
-        char** texts = new char*[3]{
-            new char[26]{}, new char[26]{}, new char[26]{}
-        };
-        COLORREF colors[3] = {};
-        int totalLen = 0;
-        if(this->mfc.checkRoadLen->GetCheck() == BST_CHECKED){
-            std::sprintf(texts[totalLen], "路径长：%.2f米", e.distance);
-            colors[totalLen] = RGB(128, 128, 128);
-            ++totalLen;
-        }
-        if(this->mfc.checkSafety->GetCheck() == BST_CHECKED){
-            std::sprintf(texts[totalLen], "安全度：%d", e.riskLevel);
-            colors[totalLen] = RGB(128, 128, 128);
-            ++totalLen;
-        }if(this->mfc.checkCrowding->GetCheck() == BST_CHECKED){
-            std::sprintf(texts[totalLen], "拥挤度：%.1f", e.congestion);
-            colors[totalLen] = RGB(128, 128, 128);
-            ++totalLen;
-        }
-        Vec2 drawPnt((begin.x + end.x) / 2, (begin.y + end.y) / 2);
+        if(!isPaintingEmergencyWay){
+            char** texts = new char*[3]{
+                new char[26]{}, new char[26]{}, new char[26]{}
+            };
+            COLORREF colors[3] = {};
+            int totalLen = 0;
+            if(this->mfc.checkRoadLen->GetCheck() == BST_CHECKED){
+                std::sprintf(texts[totalLen], "路径长：%.2f米", e.distance * 100.0f);
+                colors[totalLen] = RGB(128, 128, 128);
+                ++totalLen;
+            }
+            if(this->mfc.checkSafety->GetCheck() == BST_CHECKED){
+                std::sprintf(texts[totalLen], "安全度：%d", e.riskLevel);
+                colors[totalLen] = RGB(128, 128, 128);
+                ++totalLen;
+            }if(this->mfc.checkCrowding->GetCheck() == BST_CHECKED){
+                std::sprintf(texts[totalLen], "拥挤度：%.1f", e.congestion);
+                colors[totalLen] = RGB(128, 128, 128);
+                ++totalLen;
+            }
+            Vec2 drawPnt((begin.x + end.x) / 2, (begin.y + end.y) / 2);
 
-        if(this->mfc.checkRandTag->GetCheck() == BST_CHECKED){
-            srand(time(nullptr) + rand()*rand() + 3);
-            int Rand = rand() % 7 + 2; // (2, 8)
-            drawPnt.x = (begin.x * Rand + end.x*(10 - Rand)) / 10;
-            drawPnt.y = (begin.y * Rand + end.y*(10 - Rand)) / 10;
+            if(this->mfc.checkRandTag->GetCheck() == BST_CHECKED){
+                srand(time(nullptr) + rand()*rand() + 3);
+                int Rand = rand() % 7 + 2; // (2, 8)
+                drawPnt.x = (begin.x * Rand + end.x*(10 - Rand)) / 10;
+                drawPnt.y = (begin.y * Rand + end.y*(10 - Rand)) / 10;
+            }
+            this->PaintText(drawPnt, 16, true, const_cast<const char**>(texts), 
+                colors, totalLen
+            );
+            
+            for(int i = 0; i < 3; i++)delete[] texts[i];
+            delete[] texts;
         }
-        this->PaintText(drawPnt, 16, true, const_cast<const char**>(texts), colors, totalLen);
 
-        //checkEdge.insert(edge);
+        checkEdge.insert(edge);
         std::cout << "\b\b[V], ";
 
-        for(int i = 0; i < 3; i++)delete[] texts[i];
-        delete[] texts;
     };
 
     // 漏洞：逃生路可能会给正常路径覆盖。
@@ -596,14 +602,14 @@ void CEGMain::PaintEdges(){
         if(edIdx != 1){	// 不是全部绘制
             const auto& edges = this->paths[edIdx - 2].edges;
             for(const auto& edge : edges){
-                _PaintEdge(edge, CEGMain::kCOLOR_PATH_HINT, 4);
+                _PaintEdge(edge, CEGMain::kCOLOR_PATH_HINT, 4, true);
             }
         }else{			// 绘制全部路径
             for(int i = 0; i < this->paths.size(); ++i){
                 const auto& edges = this->paths[i].edges;
                 const int stroke = (i == 0)? 8 : 4;
                 for(const auto& edge : edges){
-                    _PaintEdge(edge, CEGMain::kCOLOR_PATH_HINT, stroke);
+                    _PaintEdge(edge, CEGMain::kCOLOR_PATH_HINT, stroke, true);
                 }
             }
         }
@@ -713,6 +719,10 @@ void CEGMain::SetCurrentPage(int page){
     if(this->currentIdx != -1){
         const GraphInfo& info = this->graphInfos.at(page);
 
+        this->mfc.choiceEscEnd->ResetContent();
+        this->mfc.choiceEscEnd->AddString(CEGMain::kSTR_VERTEX_NONE);	// 0
+        this->mfc.choiceEscEnd->SetCurSel(0);
+
         this->mfc.choiceEscBegin->ResetContent();
         this->mfc.choiceEscBegin->AddString(CEGMain::kSTR_VERTEX_NONE);	// 0
         for(const int& vid : info.escBegin){
@@ -722,18 +732,6 @@ void CEGMain::SetCurrentPage(int page){
             );
         }
         this->mfc.choiceEscBegin->SetCurSel(0);
-
-        this->mfc.choiceEscEnd->ResetContent();
-        this->mfc.choiceEscEnd->AddString(CEGMain::kSTR_VERTEX_NONE);		// 0
-        this->mfc.choiceEscEnd->AddString(CEGMain::kSTR_VERTEX_ALL_EXIT);	// 1
-        for(const int& vid : info.escEnd){
-            const Vertex* v = info.graph.getVertex(vid);
-            std::string name = ((vid == info.escEnd.front()) ? "★" : "") + v->name;
-            this->mfc.choiceEscEnd->AddString(
-                this->GbkToUtf16(name.c_str()).c_str()
-            );
-        }
-        this->mfc.choiceEscEnd->SetCurSel(0);
         
         this->mfc.btnDelGraph->EnableWindow(SW_SHOW);
         this->mfc.choiceEscBegin->EnableWindow(SW_SHOW);
@@ -797,12 +795,26 @@ void CEGMain::OnChangeChoiceEscBegin(){
 
             this->paths.reserve(exitID_len_Path.size());
             for(auto& item : exitID_len_Path){
+                if(item.path.empty())continue;
                 this->paths.emplace_back(
                     std::move(item.path), 
                     std::move(item.edges), 
                     item.length
                 );
             }
+
+            this->mfc.choiceEscEnd->ResetContent();
+            this->mfc.choiceEscEnd->AddString(CEGMain::kSTR_VERTEX_NONE);		// 0
+            this->mfc.choiceEscEnd->AddString(CEGMain::kSTR_VERTEX_ALL_EXIT);	// 1
+            for(const auto& path : this->paths){
+                const int& vid = path.path.back();
+                const Vertex* v = info.graph.getVertex(vid);
+                std::string name = ((&path == &this->paths.front()) ? "★" : "") + v->name;
+                this->mfc.choiceEscEnd->AddString(
+                    this->GbkToUtf16(name.c_str()).c_str()
+                );
+            }
+            this->mfc.choiceEscEnd->SetCurSel(0);
         }
     }else{
         this->mfc.choiceEscBegin->EnableWindow(SW_HIDE);

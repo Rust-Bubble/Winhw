@@ -382,7 +382,8 @@ double Graph::calculatePathWeight(const std::vector<int>& path, bool emergencyMo
         if (adjacencyList.find(from) != adjacencyList.end()) {
             for (const Edge& edge : adjacencyList.at(from)) {
                 if (edge.to == to) {
-                    totalWeight += edge.getWeight(emergencyMode);
+                    bool isVOnFire = this->getVertex(from)->isBurning || this->getVertex(to)->isBurning;
+                    totalWeight += edge.getWeight(isVOnFire);
                     edgeFound = true;
                     break;
                 }
@@ -527,6 +528,7 @@ ELP Graph::findShortestPath(int startId, int endId, bool emergencyMode) const{
                 }
 
                 // 计算边的实际权重
+                bool isVOnFire = this->getVertex(edge.from)->isBurning || this->getVertex(edge.to)->isBurning;
                 double weight = edge.getWeight(emergencyMode);
                 double newDist = dist[u] + weight;
 

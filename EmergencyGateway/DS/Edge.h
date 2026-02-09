@@ -29,11 +29,13 @@ struct Edge {
 
 
     // 计算边的权重（暂时都只用“距离”作为权重）
-    // @param isEmergency 是否处于紧急模式
+    // @param isEmergency 是否处于紧急模式（这里定义为是否邻近节点在着火）
     // @return 边的权重值。目前，是否紧急情况，距离都是一样的。
     double getWeight(bool isEmergency = false) const {
-        if (isEmergency) return 1e5;//若为紧急情况，道路不可通行
-        else return riskLevel + congestion + distance;//若不紧急，采用三属性和为最终权值
+        if(isEmergency){
+            return 1e5;//若为紧急情况，道路不可通行
+        }
+        else return (distance * (1.0 + congestion * 199.0) )* (1.0 + 5 * riskLevel*riskLevel);//若不紧急，采用三属性和为最终权值
     }
 
 };

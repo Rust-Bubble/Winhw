@@ -82,7 +82,7 @@ protected:
     const COLORREF kCOLOR_INTERM_D    = RGB(180, 180,   0);
     const COLORREF kCOLOR_BKG_D       = RGB( 64,  64,  64);
     
-    const int      kLENGTH_MARGIN     = 40;
+    const int      kLENGTH_MARGIN     = 70;
     const UINT_PTR kTIMER_UPDATE_GRAPH_LATER = 1;
 
 protected:
